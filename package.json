@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/kshitij-p/ts-express-starter#readme",
   "dependencies": {
-    "concurrently": "^7.6.0"
+    "@hookform/resolvers": "^2.9.11",
+    "concurrently": "^7.6.0",
+    "react-hook-form": "^7.43.2"
   }
 }

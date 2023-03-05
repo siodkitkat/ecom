@@ -4,10 +4,16 @@ import { z } from "zod";
 import { ImageSchema } from "../types";
 import Button from "./Button";
 
-const ImageUploader = ({ onComplete }: { onComplete?: (image: z.infer<typeof ImageSchema>) => void }) => {
+const ImageUploader = ({
+  errorMessage,
+  onComplete,
+}: {
+  errorMessage?: string;
+  onComplete?: (image: z.infer<typeof ImageSchema>) => void;
+}) => {
   const { mutate } = useMutation({
     mutationFn: async () => {
-      const file = fileinputRef.current?.files?.[0];
+      const file = fileInputRef.current?.files?.[0];
 
       if (!file) {
         throw new Error("No file was added to upload.");
@@ -38,19 +44,36 @@ const ImageUploader = ({ onComplete }: { onComplete?: (image: z.infer<typeof Ima
       : undefined,
   });
 
-  const fileinputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    if (!fileInputRef.current?.files?.[0]) {
+      return;
+    }
     mutate();
   };
 
   return (
     <div>
-      <input type="file" name="image" ref={fileinputRef} />
-      <Button type="submit" onClick={handleClick}>
-        Upload
-      </Button>
+      <div className="flex items-center gap-16 md:gap-24">
+        <input className="hidden" type="file" name="image" ref={fileInputRef} />
+        <Button
+          onClick={() => {
+            if (!fileInputRef.current) {
+              return;
+            }
+
+            fileInputRef.current.click();
+          }}
+        >
+          Choose a file
+        </Button>
+        <Button type="submit" onClick={handleClick}>
+          Upload
+        </Button>
+      </div>
+      {errorMessage ? <p className="truncate text-base text-red-500">{`${errorMessage}`}</p> : null}
     </div>
   );
 };

@@ -1,16 +1,67 @@
 import { useMutation } from "@tanstack/react-query";
-import React, { useState } from "react";
+import React, { ForwardedRef, useState } from "react";
+import { FieldErrors, FieldValues, useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import Button from "../../components/Button";
 import ImageUploader from "../../components/ImageUploader";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const CreateProductFormSchema = z.object({
+  title: z.string().min(1, "Atleast 1 character required"),
+  body: z.string().min(1, "Atleast 1 character required"),
+  price: z.number({ invalid_type_error: "Must be a number" }).positive(),
+  quantity: z.number({ invalid_type_error: "Must be a number" }).nonnegative(),
+});
+
+const Input = React.forwardRef(
+  (
+    {
+      name,
+      errors,
+      ...rest
+    }: Omit<React.ComponentProps<"input">, "name"> & {
+      errors: FieldErrors<FieldValues>;
+      name: string;
+    },
+    passedRef: ForwardedRef<HTMLInputElement | HTMLInputElement>
+  ) => {
+    const inputProps = {
+      name,
+      ...rest,
+    };
+
+    const errorMessage = errors[name]?.message;
+
+    return (
+      <label className="flex w-max flex-col">
+        <div className="flex w-full flex-col gap-2 md:gap-4">
+          <p className="capitalize">{name}</p>
+        </div>
+        <input
+          {...inputProps}
+          className="rounded bg-zinc-800 p-1"
+          aria-invalid={errorMessage !== undefined}
+          ref={passedRef as ForwardedRef<HTMLInputElement>}
+        />
+        {errorMessage ? <p className="truncate text-base text-red-500">{`${errorMessage}`}</p> : null}
+      </label>
+    );
+  }
+);
+
+Input.displayName = "Input";
 
 const CreateProduct = () => {
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [price, setPrice] = useState("");
-  const [quantity, setQuantity] = useState("");
-
   const [imageId, setImageId] = useState("");
+
+  const {
+    register,
+    formState: { errors, submitCount },
+    handleSubmit,
+  } = useForm({
+    resolver: zodResolver(CreateProductFormSchema),
+  });
 
   const {
     mutateAsync,
@@ -46,32 +97,27 @@ const CreateProduct = () => {
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const createProduct = async (data: FieldValues, e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!imageId) {
+      return;
+    }
 
-    mutateAsync({ title, body, imageId, price, quantity });
+    const { title, body, price, quantity } = data as z.infer<typeof CreateProductFormSchema>;
+
+    mutateAsync({ title, body, price: `${price}`, quantity: `${quantity}`, imageId });
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <label>
-          <p>title</p>
-          <input value={title} onChange={(e) => setTitle(e.currentTarget.value)} />
-        </label>
-        <label>
-          <p>body</p>
-          <input value={body} onChange={(e) => setBody(e.currentTarget.value)} />
-        </label>
-        <label>
-          <p>price</p>
-          <input value={price} onChange={(e) => setPrice(e.currentTarget.value)} />
-        </label>
-        <label>
-          <p>quantity</p>
-          <input value={quantity} onChange={(e) => setQuantity(e.currentTarget.value)} />
-        </label>
+    <div className="flex flex-col p-4 text-lg md:p-6 md:text-3xl xl:p-8">
+      <p>Create a new product</p>
+      <form className="flex flex-col gap-4 " onSubmit={handleSubmit(createProduct)}>
+        <Input {...register("title")} errors={errors} />
+        <Input {...register("body")} errors={errors} />
+        <Input {...register("price", { valueAsNumber: true })} errors={errors} />
+        <Input {...register("quantity", { valueAsNumber: true })} errors={errors} />
         <ImageUploader
+          errorMessage={submitCount > 0 && !imageId ? "Atleast 1 image is required" : undefined}
           onComplete={(image) => {
             if (!image._id) {
               throw new Error("Uploaded image has no id uh oh");
