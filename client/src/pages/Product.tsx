@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import Button from "./Button";
+import Button from "../components/Button";
 
 const img = "https://m.media-amazon.com/images/I/41I3dqoDN9L._SL1000_.jpg";
 
