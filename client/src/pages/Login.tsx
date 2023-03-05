@@ -1,29 +1,45 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
 import Button from "../components/Button";
+import { refetchUser } from "../contexts/Auth/utils";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
+  const queryClient = useQueryClient();
+
+  const { mutate: login, isLoading } = useMutation({
+    mutationFn: async () => {
+      if (isLoading) {
+        return;
+      }
+
+      const body = new URLSearchParams({
+        username: username,
+        password: password,
+      });
+
+      await fetch("/api/login", {
+        body: body,
+        method: "POST",
+        headers: new Headers({
+          "Content-Type": "application/x-www-form-urlencoded",
+        }),
+      });
+    },
+    onSuccess: () => {
+      //invalidate auth to force a refetch
+      return refetchUser(queryClient);
+    },
+  });
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    const body = new URLSearchParams({
-      username: username,
-      password: password,
-    });
-
-    const req = await fetch("/api/login", {
-      body: body,
-      method: "POST",
-      headers: new Headers({
-        "Content-Type": "application/x-www-form-urlencoded",
-      }),
-    });
-
-    const res = await req.json();
-
-    console.log(res);
+    if (!isLoading) {
+      login();
+    }
+    return false;
   };
 
   return (

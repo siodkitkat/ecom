@@ -1,15 +1,51 @@
 import Drawer from "../Drawer";
 import { GiHamburgerMenu } from "react-icons/gi";
+import useAuth from "../../hooks/useAuth";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { refetchUser } from "../../contexts/Auth/utils";
+import { Link } from "react-router-dom";
 
 const AuthLinks = () => {
+  const { isLoggedIn } = useAuth();
+
+  const queryClient = useQueryClient();
+
+  const { mutate: logout, isLoading } = useMutation({
+    mutationFn: async () => {
+      fetch("/api/logout", {
+        method: "POST",
+      });
+    },
+    onSuccess: () => {
+      return refetchUser(queryClient);
+    },
+  });
+
   return (
     <>
-      <a className="underline-teal-anim text-xl md:text-[2rem]" href="/login">
-        Login
-      </a>
-      <a className="underline-teal-anim text-xl md:text-[2rem]" href="/register">
-        Register
-      </a>
+      {isLoggedIn ? (
+        <button
+          className="underline-teal-anim inline text-start text-xl md:text-[2rem]"
+          onClick={
+            !isLoading
+              ? () => {
+                  logout();
+                }
+              : undefined
+          }
+        >
+          Logout
+        </button>
+      ) : (
+        <>
+          <Link className="underline-teal-anim text-xl md:text-[2rem]" to="/login">
+            Login
+          </Link>
+          <Link className="underline-teal-anim text-xl md:text-[2rem]" to="/register">
+            Register
+          </Link>
+        </>
+      )}
     </>
   );
 };
@@ -19,9 +55,9 @@ const Navbar = () => {
     <nav className="flex h-max w-full py-[2em] text-xl md:text-[2rem] md:leading-10">
       <div className="mx-[1em] flex h-max flex-grow items-center font-[600]">
         <div className="flex h-max flex-grow justify-evenly">
-          <a className="underline-teal-anim" href="/">
+          <Link className="underline-teal-anim" to="/">
             Home
-          </a>
+          </Link>
           <button className="underline-teal-anim">Search</button>
           <Drawer
             className="lg:hidden"
