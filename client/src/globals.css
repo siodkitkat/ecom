@@ -1,3 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body,
+  #root {
+    @apply bg-neutral-1000;
+  }
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body,
+* {
+  font-family: "Montserrat", sans-serif;
+}
+
+body,
+#root {
+  min-height: 100vh;
+}
