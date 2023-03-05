@@ -44,6 +44,8 @@ const Register = () => {
     return false;
   };
 
+  //To do use react hook form with zod here and make it beautiful
+
   return (
     <div>
       <form onSubmit={handleSubmit}>
