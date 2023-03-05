@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/kshitij-p/ts-express-starter#readme",
   "dependencies": {
-    "concurrently": "^7.6.0"
+    "@headlessui/react": "^1.7.10",
+    "concurrently": "^7.6.0",
+    "react-icons": "^4.7.1"
   }
 }

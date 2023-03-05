@@ -1,6 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import Button from "../components/Button";
+import Dialog from "../components/Dialog";
 
 const img = "https://m.media-amazon.com/images/I/41I3dqoDN9L._SL1000_.jpg";
 
@@ -23,7 +24,11 @@ const Product = () => {
             Molestiae molestias, error obcaecati sequi voluptatibus non. Vel pariatur at voluptatibus temporibus
             adipisci aperiam voluptatem neque?
           </p>
-          <Button className="mt-4 bg-teal-600 py-1 px-2 md:mt-2">Buy</Button>
+          <Dialog
+            Opener={<Button className="mt-4 bg-teal-600 py-1 px-2 md:mt-2">Buy</Button>}
+            title="Kekw"
+            description="some desc"
+          ></Dialog>
         </div>
       </div>
     </div>
