@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { ForwardedRef, useState } from "react";
-import { FieldErrors, FieldValues, useForm } from "react-hook-form";
+import { FieldErrors, SubmitHandler, useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import Button from "../../components/Button";
 import ImageUploader from "../../components/ImageUploader";
@@ -15,6 +15,8 @@ const CreateProductFormSchema = z.object({
   quantity: z.number({ invalid_type_error: "Must be a number" }).nonnegative(),
 });
 
+type CreateProductForm = z.infer<typeof CreateProductFormSchema>;
+
 const Input = React.forwardRef(
   (
     {
@@ -22,10 +24,10 @@ const Input = React.forwardRef(
       errors,
       ...rest
     }: Omit<React.ComponentProps<"input">, "name"> & {
-      errors: FieldErrors<FieldValues>;
-      name: string;
+      errors: FieldErrors<CreateProductForm>;
+      name: keyof CreateProductForm;
     },
-    passedRef: ForwardedRef<HTMLInputElement | HTMLInputElement>
+    passedRef: ForwardedRef<HTMLInputElement>
   ) => {
     const inputProps = {
       name,
@@ -62,7 +64,7 @@ const CreateProduct = () => {
     register,
     formState: { errors, submitCount },
     handleSubmit,
-  } = useForm({
+  } = useForm<CreateProductForm>({
     resolver: zodResolver(CreateProductFormSchema),
   });
 
@@ -101,13 +103,13 @@ const CreateProduct = () => {
     },
   });
 
-  const createProduct = async (data: FieldValues, e: React.FormEvent<HTMLFormElement>) => {
+  const createProduct: SubmitHandler<CreateProductForm> = async (data, e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!imageId) {
       return;
     }
 
-    const { title, body, price, quantity } = data as z.infer<typeof CreateProductFormSchema>;
+    const { title, body, price, quantity } = data;
 
     mutateAsync({ title, body, price: `${price}`, quantity: `${quantity}`, imageId });
   };
@@ -129,14 +131,13 @@ const CreateProduct = () => {
             }
             setImageId(image._id);
             //To do throw a toast here for feedback
-            console.log("done updating image");
           }}
         />
         <Button className="md:mt-2" type="submit" disabled={isLoading}>
           Submit
         </Button>
       </form>
-      {productId ? <Link to={`/products/${productId}`}>Successfully created the new product!</Link> : null}
+      {productId ? <Link to={`/products/${productId}`}>Success! Click here to visit your new product</Link> : null}
     </div>
   );
 };

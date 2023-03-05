@@ -1,5 +1,6 @@
 import { S3Client } from "@aws-sdk/client-s3";
 import dotenv from "dotenv";
+import { RequestHandler } from "express";
 import { envSchema } from "../types";
 dotenv.config();
 
@@ -25,3 +26,14 @@ export const S3 = new S3Client({
     secretAccessKey: env.R2_SECRET_KEY,
   },
 });
+
+export const catchAsync = (handler: RequestHandler) => {
+  const safeHandler: RequestHandler = async (req, res, next) => {
+    try {
+      await handler(req, res, next);
+    } catch (e) {
+      next(e);
+    }
+  };
+  return safeHandler;
+};

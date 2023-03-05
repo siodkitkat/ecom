@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\""
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
+    "seed": "cd server && npm run seed"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,7 @@
     "@hookform/resolvers": "^2.9.11",
     "class-variance-authority": "^0.4.0",
     "concurrently": "^7.6.0",
+    "framer-motion": "^9.1.7",
     "react-hook-form": "^7.43.2"
   }
 }

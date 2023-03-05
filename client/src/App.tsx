@@ -11,6 +11,7 @@ import { AuthProvider } from "./contexts/Auth";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CreateProduct from "./pages/Products/CreateProduct";
+import ErrorPage from "./pages/ErrorPage";
 
 const router = createBrowserRouter([
   {
@@ -51,6 +52,10 @@ const router = createBrowserRouter([
       {
         path: "/products/:id",
         element: <Product />,
+      },
+      {
+        path: "*",
+        element: <ErrorPage />,
       },
     ],
   },

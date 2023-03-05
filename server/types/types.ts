@@ -8,6 +8,8 @@ export const envSchema = z.object({
   R2_SECRET_KEY: z.string(),
   R2_BUCKET_NAME: z.string(),
   R2_PUBLIC_URL: z.string(),
+  SEED_USERNAME: z.string(),
+  SEED_PASSWORD: z.string(),
 });
 
 export type File = Express.MulterS3.File;

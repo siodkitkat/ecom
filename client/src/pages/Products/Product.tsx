@@ -9,8 +9,9 @@ import EditIcon from "../../components/icons/EditIcon";
 import StyledDialog from "../../components/StyledDialog";
 import Textarea from "../../components/Textarea";
 import useAuth from "../../hooks/useAuth";
-import { ProductSchema } from "../../types";
+import { PageProduct, ProductSchema } from "../../types";
 import { invalidateProducts, TIME_IN_MS } from "../../utils";
+import ErrorPage from "../ErrorPage";
 
 type EditableProductFields = Exclude<keyof z.infer<typeof ProductSchema>, "_id" | "image" | "User">;
 
@@ -21,7 +22,7 @@ const ProductEditDialog = ({
   setOpen,
   productId,
   onSuccess,
-  onSettled,
+  onMutate,
   onDiscard,
 }: {
   value: string;
@@ -30,7 +31,7 @@ const ProductEditDialog = ({
   setOpen: ControlledDialogProps["setOpen"];
   productId: string;
   onSuccess: () => void;
-  onSettled: () => void;
+  onMutate: () => void;
   onDiscard: () => void;
 }) => {
   const queryClient = useQueryClient();
@@ -53,8 +54,31 @@ const ProductEditDialog = ({
 
       return true;
     },
-    onSettled: () => {
-      onSettled();
+    onMutate: async () => {
+      const queryKey = ["product-get", productId];
+      await queryClient.cancelQueries(queryKey);
+
+      const previousProduct = queryClient.getQueryData<PageProduct>(queryKey);
+
+      queryClient.setQueryData<PageProduct>(queryKey, (currProduct) => {
+        if (!currProduct) {
+          return;
+        }
+        return { ...currProduct, [fieldToEdit]: value };
+      });
+
+      onMutate();
+
+      return { previousProduct };
+    },
+    onError: (err, _, ctx) => {
+      if (!ctx) {
+        return;
+      }
+      queryClient.setQueryData(["product-get", productId], ctx.previousProduct);
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries(["product-get", productId]);
     },
     onSuccess: () => {
       //To do throw a toast here
@@ -136,7 +160,6 @@ const EditableText = ({
 
   const handleBlur = () => {
     if (children.trim() !== text.trim()) {
-      //To do create a dialog and replace alert with it
       setDiagOpen(true);
     }
   };
@@ -186,7 +209,7 @@ const EditableText = ({
       )}
       <ProductEditDialog
         onSuccess={onSuccess}
-        onSettled={handleStopEditing}
+        onMutate={handleStopEditing}
         onDiscard={handleStopEditing}
         open={diagOpen}
         setOpen={setDiagOpen}
@@ -268,8 +291,7 @@ const Product = () => {
   });
 
   if (!product) {
-    //To do add proper error handling
-    return <div>Product doesnt exist</div>;
+    return <ErrorPage code={404} backTo={{ link: "/products", text: "See all products" }} />;
   }
 
   const canEdit = product.User === user?._id;
@@ -278,17 +300,15 @@ const Product = () => {
     refetchProduct();
   };
 
-  /* To do fetch  */
-
   return (
     <div className="w-full">
-      <div className="flex flex-col items-baseline gap-4 p-4 md:gap-8 md:p-12 xl:flex-row">
+      <div className="flex flex-col items-baseline gap-4 p-4 md:gap-8 md:p-12 xl:flex-row xl:items-start">
         <img
-          className="w-[35rem] self-center rounded-sm object-cover"
+          className="w-[35rem] self-center rounded-sm object-cover xl:self-auto"
           src={product.image[0]?.publicUrl ?? ""}
           style={{ aspectRatio: "1 / 1" }}
         />
-        <div className="flex w-full flex-col items-baseline gap-2 p-1 md:gap-4 xl:py-8 xl:px-4">
+        <div className="flex w-full flex-col items-baseline gap-2 p-1 md:gap-4 xl:py-0 xl:px-4">
           <div className="flex w-full flex-col gap-2 text-2xl text-zinc-200 md:gap-4 md:text-4xl">
             <EditableText
               className="font-bold md:text-5xl"
@@ -325,7 +345,7 @@ const Product = () => {
           </EditableText>
           <div className="mt-4 flex items-center gap-4 md:mt-2">
             <StyledDialog
-              Opener={<Button variants={{ type: "secondary" }}>Buy now</Button>}
+              Opener={<Button variants={{ type: "secondary", size: "lg" }}>Buy now</Button>}
               title="Whoops"
               description="This site is meant to be a demo. You can't actually purchase anything from here sorry :/"
             />

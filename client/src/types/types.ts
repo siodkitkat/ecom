@@ -16,6 +16,8 @@ export const ProductSchema = z.object({
   User: z.string(),
 });
 
+export type PageProduct = z.infer<typeof ProductSchema>;
+
 export const UserSchema = z.object({
   _id: z.string(),
   username: z.string(),

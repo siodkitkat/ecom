@@ -13,6 +13,7 @@ const Drawer = ({ children, ...rest }: React.ComponentProps<typeof Dialog>) => {
       size={{
         maxHeight: "100vh",
         height: "100vh",
+        maxWidth: "75vw",
       }}
       transitionProps={{
         container: {

@@ -20,7 +20,38 @@ const cvaVariants = {
     secondary: [
       "bg-neutral-1000",
       "text-pink-700",
-      "border-2",
+      "border",
+      "md:border-2",
+      "border-pink-700",
+      "enabled:hover:bg-pink-900/25",
+      "enabled:hover:text-pink-600",
+      "enabled:hover:border-pink-600",
+      "focus:bg-pink-900/20",
+      "focus:text-pink-600",
+      "focus:border-pink-600",
+      "focus:outline-0",
+      "disabled:opacity-50",
+    ],
+    transparent: [
+      "bg-transparent",
+      "text-pink-700",
+      "border",
+      "md:border-2",
+      "border-pink-700",
+      "enabled:hover:bg-pink-900/25",
+      "enabled:hover:text-pink-600",
+      "enabled:hover:border-pink-600",
+      "focus:bg-pink-900/20",
+      "focus:text-pink-600",
+      "focus:border-pink-600",
+      "focus:outline-0",
+      "disabled:opacity-50",
+    ],
+    translucent: [
+      "bg-black/50",
+      "text-pink-700",
+      "border",
+      "md:border-2",
       "border-pink-700",
       "enabled:hover:bg-pink-900/25",
       "enabled:hover:text-pink-600",
@@ -36,6 +67,7 @@ const cvaVariants = {
     sm: ["px-1", "py-1", "text-sm", "md:px-3", "md:py-2", "md:text-base"],
     md: ["px-2", "py-1", "text-base", "md:px-3", "md:py-2", "md:text-xl"],
     lg: ["px-2", "py-1", "text-lg", "md:px-3", "md:py-2", "md:text-2xl"],
+    xl: ["px-2", "py-1", "text-xl", "md:px-5", "md:py-3", "md:text-4xl"],
   },
   weight: {
     medium: "font-medium",
@@ -52,7 +84,7 @@ const DEFAULT_BUTTON_VARIANTS: {
   weight: "medium",
 };
 
-const buttonClasses = cva(["w-max", "font-medium", "rounded"], {
+const buttonClasses = cva(["w-max", "font-medium", "rounded-sm", "md:rounded", "transition"], {
   variants: cvaVariants,
 });
 

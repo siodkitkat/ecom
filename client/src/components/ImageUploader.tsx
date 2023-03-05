@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { z } from "zod";
 import { ImageSchema } from "../types";
 import Button from "./Button";
@@ -13,12 +13,12 @@ const ImageUploader = ({
   className?: string;
   onComplete?: (image: z.infer<typeof ImageSchema>) => void;
 }) => {
-  const { mutate } = useMutation({
-    mutationFn: async () => {
-      const file = fileInputRef.current?.files?.[0];
+  const [file, setFile] = useState<File | undefined>(undefined);
 
-      if (!file) {
-        throw new Error("No file was added to upload.");
+  const { mutate, isSuccess, isLoading, isError, reset } = useMutation({
+    mutationFn: async (file: File) => {
+      if (!file.type.trim().toLowerCase().startsWith("image")) {
+        throw new Error("Only image files are allowed.");
       }
 
       const formData = new FormData();
@@ -46,20 +46,51 @@ const ImageUploader = ({
       : undefined,
   });
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.currentTarget?.files?.[0];
+    if (!file) {
+      return;
+    }
+    setFile(file);
+    reset();
+  };
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (!fileInputRef.current?.files?.[0]) {
+    if (!file) {
       return;
     }
-    mutate();
+    mutate(file);
+  };
+
+  const renderFileName = (file: File) => {
+    let fileName = file.name;
+    if (fileName.length > 5) {
+      let [base, ext] = fileName.split(".");
+      //This should not be possible
+      if (!base) {
+        return null;
+      }
+
+      fileName = `${base.slice(0, 20)}...` + (ext ? `.${ext}` : "");
+    }
+
+    return fileName;
   };
 
   return (
     <div className={className}>
       <div className="flex items-center justify-between">
-        <input className="hidden" type="file" name="image" ref={fileInputRef} />
+        <input
+          className="hidden"
+          accept="image/*"
+          type="file"
+          name="image"
+          onChange={handleChange}
+          ref={fileInputRef}
+        />
         <Button
           variants={{ type: "secondary", weight: "semibold" }}
           onClick={() => {
@@ -76,7 +107,23 @@ const ImageUploader = ({
           Upload
         </Button>
       </div>
-      {errorMessage ? <p className="truncate text-base text-red-500">{`${errorMessage}`}</p> : null}
+      <div className="flex w-max flex-col">
+        {file ? (
+          <div className="text-[0.75em]">
+            <p title={file.name}>{renderFileName(file)}</p>
+          </div>
+        ) : null}
+        {/* Loader */}
+        {isLoading || isSuccess ? (
+          <div className={`h-1 rounded-sm bg-pink-600 transition-all ${isSuccess ? "w-full" : "w-1"}`} />
+        ) : null}
+      </div>
+      {isError || errorMessage ? (
+        <p className="truncate text-base text-red-500">
+          {isError ? "Failed to upload your image :(" : `${errorMessage}`}
+        </p>
+      ) : null}
+      {true}
     </div>
   );
 };

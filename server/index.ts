@@ -9,7 +9,7 @@ import bodyParser from "body-parser";
 import MongoDbStoreFactory from "connect-mongodb-session";
 import mongoose from "mongoose";
 import User, { IUser } from "./models/User";
-import { env, errorResponse } from "./utils";
+import { catchAsync, env, errorResponse } from "./utils";
 import { requireLoggedOut, requireLogin } from "./middlewares";
 import ImagesRouter, { deleteImageFromDb } from "./routers/ImagesRouter";
 import Product from "./models/Product";
@@ -107,188 +107,223 @@ app.get("/", (req, res) => {
   return res.status(200).json("Nothing to see here");
 });
 
-app.get("/me", requireLogin, async (req, res) => {
-  const user = await User.findById(req.user?._id);
+app.get(
+  "/me",
+  requireLogin,
+  catchAsync(async (req, res) => {
+    const user = await User.findById(req.user?._id);
 
-  if (!user) {
-    return res.status(401).json(errorResponse("You must be logged in to do this", 401));
-  }
-
-  return res.status(200).json({
-    _id: user._id,
-    username: user.username,
-    products: user.products,
-  });
-});
-
-app.post("/register", requireLoggedOut, (req, res) => {
-  const newUser = new User({ username: req.body.username, password: req.body.password });
-
-  User.register(newUser, req.body.password, (err) => {
-    if (err) {
-      return res.status(500).json(errorResponse("Something went wrong while registering the user.", 500));
+    if (!user) {
+      return res.status(401).json(errorResponse("You must be logged in to do this", 401));
     }
 
-    passport.authenticate("local")(req, res, () => {
-      return res.status(200).json({
-        message: "Successfully registered.",
+    return res.status(200).json({
+      _id: user._id,
+      username: user.username,
+      products: user.products,
+    });
+  })
+);
+
+app.post(
+  "/register",
+  requireLoggedOut,
+  catchAsync((req, res) => {
+    const newUser = new User({ username: req.body.username, password: req.body.password });
+
+    User.register(newUser, req.body.password, (err) => {
+      if (err) {
+        return res.status(500).json(errorResponse("Something went wrong while registering the user.", 500));
+      }
+
+      passport.authenticate("local")(req, res, () => {
+        return res.status(200).json({
+          message: "Successfully registered.",
+        });
       });
     });
-  });
-});
+  })
+);
 
-app.post("/logout", requireLogin, (req, res) => {
-  req.logout(function (err) {
-    if (err) {
-      return res.status(500).json(errorResponse("Something went wrong while logging out the user.", 500));
-    }
-    return res.status(200).json({
-      message: "Successfully logged out.",
+app.post(
+  "/logout",
+  requireLogin,
+  catchAsync((req, res) => {
+    req.logout(function (err) {
+      if (err) {
+        return res.status(500).json(errorResponse("Something went wrong while logging out the user.", 500));
+      }
+      return res.status(200).json({
+        message: "Successfully logged out.",
+      });
     });
-  });
-});
+  })
+);
 
-app.post("/login", requireLoggedOut, passport.authenticate("local"), (req, res) => {
-  if (!req.user) {
-    return res.status(400).json(errorResponse("Invalid email id or password.", 400));
-  }
+app.post(
+  "/login",
+  requireLoggedOut,
+  passport.authenticate("local"),
+  catchAsync((req, res) => {
+    if (!req.user) {
+      return res.status(400).json(errorResponse("Invalid email id or password.", 400));
+    }
 
-  return res.status(200).json({
-    message: "Successfully logged in.",
-  });
-});
+    return res.status(200).json({
+      message: "Successfully logged in.",
+    });
+  })
+);
 
-app.get("/products", async (req, res) => {
-  const products = await Product.find({}).populate("image");
-  return res.status(200).json({ message: "Successfully got all the products.", products: products });
-});
+app.get(
+  "/products",
+  catchAsync(async (req, res) => {
+    const products = await Product.find({}).populate("image");
+    return res.status(200).json({ message: "Successfully got all the products.", products: products });
+  })
+);
 
-app.post("/products", requireLogin, async (req, res) => {
-  if (!req.user?._id) {
-    return res.status(401).json(errorResponse("You must be logged in to do this.", 401));
-  }
+app.post(
+  "/products",
+  requireLogin,
+  catchAsync(async (req, res) => {
+    if (!req.user?._id) {
+      return res.status(401).json(errorResponse("You must be logged in to do this.", 401));
+    }
 
-  const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id);
 
-  if (!user) {
-    return res.status(401).json(errorResponse("You must be logged in to do this.", 401));
-  }
+    if (!user) {
+      return res.status(401).json(errorResponse("You must be logged in to do this.", 401));
+    }
 
-  const {
-    title,
-    price,
-    quantity,
-    body,
-    imageId,
-  }: {
-    title?: string;
-    price?: string;
-    quantity?: string;
-    body?: string;
-    imageId?: string;
-  } = req.body;
+    const {
+      title,
+      price,
+      quantity,
+      body,
+      imageId,
+    }: {
+      title?: string;
+      price?: string;
+      quantity?: string;
+      body?: string;
+      imageId?: string;
+    } = req.body;
 
-  const images: Array<string> = [];
+    const images: Array<string> = [];
 
-  if (imageId) {
-    images.push(imageId);
-  }
+    if (imageId) {
+      images.push(imageId);
+    }
 
-  const product = new Product({
-    body,
-    title,
-    price: parseInt(price as string),
-    quantity: parseInt(quantity as string),
-    User: req.user._id,
-    image: images,
-  });
-  await product.save();
+    const product = new Product({
+      body,
+      title,
+      price: parseInt(price as string),
+      quantity: parseInt(quantity as string),
+      User: req.user._id,
+      image: images,
+    });
+    await product.save();
 
-  user.products.push(product._id);
-  await user.save();
+    user.products.push(product._id);
+    await user.save();
 
-  return res.status(200).json({ message: "Successfully created the requested product", product: product });
-});
+    return res.status(200).json({ message: "Successfully created the requested product", product: product });
+  })
+);
 
-app.get("/products/:id", async (req, res) => {
-  const id = req.params.id;
+app.get(
+  "/products/:id",
+  catchAsync(async (req, res) => {
+    const id = req.params.id;
 
-  if (!id) {
-    return res.status(400).json(errorResponse("Missing product id in url params.", 400));
-  }
+    if (!id) {
+      return res.status(400).json(errorResponse("Missing product id in url params.", 400));
+    }
 
-  const product = await Product.findById(id).populate("image");
+    const product = await Product.findById(id).populate("image");
 
-  if (!product) {
-    return res.status(404).json(errorResponse("Invalid product id. No product with that id exists", 404));
-  }
+    if (!product) {
+      return res.status(404).json(errorResponse("Invalid product id. No product with that id exists", 404));
+    }
 
-  return res.status(200).json({
-    message: "Successfully got the requested product.",
-    product: product,
-  });
-});
+    return res.status(200).json({
+      message: "Successfully got the requested product.",
+      product: product,
+    });
+  })
+);
 
-app.patch("/products/:id", requireLogin, async (req, res) => {
-  const { product, error } = await authedToEditProduct({
-    user: req.user,
-    productId: req.params.id,
-  });
+app.patch(
+  "/products/:id",
+  requireLogin,
+  catchAsync(async (req, res) => {
+    const { product, error } = await authedToEditProduct({
+      user: req.user,
+      productId: req.params.id,
+    });
 
-  if (error) {
-    return res.status(error.code).json(errorResponse(error.message, error.code));
-  }
+    if (error) {
+      return res.status(error.code).json(errorResponse(error.message, error.code));
+    }
 
-  const { title, price, quantity, body } = req.body;
+    const { title, price, quantity, body } = req.body;
 
-  if (title) {
-    product.title = title;
-  }
+    if (title) {
+      product.title = title;
+    }
 
-  if (price) {
-    product.price = price;
-  }
+    if (price) {
+      product.price = price;
+    }
 
-  if (quantity) {
-    product.quantity = quantity;
-  }
+    if (quantity) {
+      product.quantity = quantity;
+    }
 
-  if (body) {
-    product.body = body;
-  }
+    if (body) {
+      product.body = body;
+    }
 
-  await product.save();
+    await product.save();
 
-  res.status(200).json({ message: "Successfully updated the requested product.", product: product });
-});
+    res.status(200).json({ message: "Successfully updated the requested product.", product: product });
+  })
+);
 
-app.delete("/products/:id", requireLogin, async (req, res) => {
-  const { product, error } = await authedToEditProduct({
-    user: req.user,
-    productId: req.params.id,
-  });
+app.delete(
+  "/products/:id",
+  requireLogin,
+  catchAsync(async (req, res) => {
+    const { product, error } = await authedToEditProduct({
+      user: req.user,
+      productId: req.params.id,
+    });
 
-  if (error) {
-    return res.status(error.code).json(errorResponse(error.message, error.code));
-  }
+    if (error) {
+      return res.status(error.code).json(errorResponse(error.message, error.code));
+    }
 
-  const user = await User.findById(req.user?._id);
+    const user = await User.findById(req.user?._id);
 
-  if (!user) {
-    return res.status(401).json(errorResponse("You must be logged in to do this.", 401));
-  }
+    if (!user) {
+      return res.status(401).json(errorResponse("You must be logged in to do this.", 401));
+    }
 
-  for (let image of product.image) {
-    await deleteImageFromDb({ image: image });
-  }
+    for (let image of product.image) {
+      await deleteImageFromDb({ image: image });
+    }
 
-  await product.delete();
+    await product.delete();
 
-  user.products = user.products.filter((userProduct) => !userProduct._id.equals(product._id));
-  await user.save();
+    user.products = user.products.filter((userProduct) => !userProduct._id.equals(product._id));
+    await user.save();
 
-  res.status(200).json({ message: "Successfully deleted the requested product.", product: product });
-});
+    res.status(200).json({ message: "Successfully deleted the requested product.", product: product });
+  })
+);
 
 app.use("/images", ImagesRouter);
 

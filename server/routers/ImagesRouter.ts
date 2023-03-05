@@ -3,13 +3,12 @@ import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { envSchema } from "../types";
 import { requireLogin } from "../middlewares";
 import multer from "multer";
-import { errorResponse, S3 } from "../utils";
+import { catchAsync, errorResponse, S3 } from "../utils";
 import multers3 from "multer-s3";
 import Image, { IImage } from "../models/Image";
 import { IUser } from "../models/User";
 
 const env = envSchema.parse(process.env);
-//To do add global error handler so the server doesnt crash in case of an error
 
 export const deleteImageFromDb = async ({ image }: { image: IImage }) => {
   let deleted = false;
@@ -130,63 +129,77 @@ const uploadImage = multer({
 
 const ImagesRouter = Router();
 
-ImagesRouter.post("/", requireLogin, uploadImage.single("image"), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json(errorResponse("Only image files are allowed.", 400));
-  }
+ImagesRouter.post(
+  "/",
+  requireLogin,
+  uploadImage.single("image"),
+  catchAsync(async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json(errorResponse("Only image files are allowed.", 400));
+    }
 
-  const user = req.user as Exclude<typeof req.user, undefined>;
+    const user = req.user as Exclude<typeof req.user, undefined>;
 
-  const publicUrl = `${env.R2_PUBLIC_URL}/${req.file.key}`;
+    const publicUrl = `${env.R2_PUBLIC_URL}/${req.file.key}`;
 
-  const image = new Image({ key: req.file.key, publicUrl: publicUrl, user: user._id });
+    const image = new Image({ key: req.file.key, publicUrl: publicUrl, user: user._id });
 
-  await image.save();
+    await image.save();
 
-  return res.status(200).json({
-    message: "Successfully uploaded the requested image.",
-    image: image,
-  });
-});
+    return res.status(200).json({
+      message: "Successfully uploaded the requested image.",
+      image: image,
+    });
+  })
+);
 
-ImagesRouter.delete("/", requireLogin, async (req, res) => {
-  const { canEdit, error, img } = await authedToEdit({ itemId: req.body.id, user: req.user });
+ImagesRouter.delete(
+  "/",
+  requireLogin,
+  catchAsync(async (req, res) => {
+    const { canEdit, error, img } = await authedToEdit({ itemId: req.body.id, user: req.user });
 
-  if (!canEdit) {
-    return res.status(error.statusCode).json(errorResponse(error.message, error.statusCode));
-  }
+    if (!canEdit) {
+      return res.status(error.statusCode).json(errorResponse(error.message, error.statusCode));
+    }
 
-  const { deleted, deletedImage } = await deleteImageFromDb({
-    image: img,
-  });
+    const { deleted, deletedImage } = await deleteImageFromDb({
+      image: img,
+    });
 
-  if (!deleted) {
-    return res.status(500).json(errorResponse("Failed to delete the requested image", 500));
-  }
+    if (!deleted) {
+      return res.status(500).json(errorResponse("Failed to delete the requested image", 500));
+    }
 
-  return res.status(200).json({
-    message: "Successfully deleted the requested image.",
-    deletedImage: deletedImage,
-  });
-});
+    return res.status(200).json({
+      message: "Successfully deleted the requested image.",
+      deletedImage: deletedImage,
+    });
+  })
+);
 
-ImagesRouter.post("/", requireLogin, uploadImage.single("image"), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json(errorResponse("Only image files are allowed.", 400));
-  }
+ImagesRouter.post(
+  "/",
+  requireLogin,
+  uploadImage.single("image"),
+  catchAsync(async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json(errorResponse("Only image files are allowed.", 400));
+    }
 
-  const user = req.user as Exclude<typeof req.user, undefined>;
+    const user = req.user as Exclude<typeof req.user, undefined>;
 
-  const publicUrl = `${env.R2_PUBLIC_URL}/${req.file.key}`;
+    const publicUrl = `${env.R2_PUBLIC_URL}/${req.file.key}`;
 
-  const image = new Image({ key: req.file.key, publicUrl: publicUrl, user: user._id });
+    const image = new Image({ key: req.file.key, publicUrl: publicUrl, user: user._id });
 
-  await image.save();
+    await image.save();
 
-  return res.status(200).json({
-    message: "Successfully uploaded the requested image.",
-    image: image,
-  });
-});
+    return res.status(200).json({
+      message: "Successfully uploaded the requested image.",
+      image: image,
+    });
+  })
+);
 
 export default ImagesRouter;

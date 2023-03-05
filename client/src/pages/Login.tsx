@@ -1,16 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import React, { useState } from "react";
-import Button from "../components/Button";
+import AuthForm from "../components/AuthForm";
 import { refetchUser } from "../contexts/Auth/utils";
 
 const Login = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-
   const queryClient = useQueryClient();
 
   const { mutate: login, isLoading } = useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({ username, password }: { username: string; password: string }) => {
       if (isLoading) {
         return;
       }
@@ -34,39 +30,18 @@ const Login = () => {
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!isLoading) {
-      login();
-    }
-    return false;
-  };
-
-  //To do use react hook form with zod here and make it beautiful
-
   return (
-    <div>
-      <p>Login</p>
-      <form onSubmit={handleSubmit}>
-        username
-        <input
-          name="username"
-          value={username}
-          onChange={(e) => {
-            setUsername(e.currentTarget.value);
-          }}
-        />
-        password
-        <input
-          name="password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.currentTarget.value);
-          }}
-        />
-        <Button type="submit">Submit</Button>
-      </form>
-    </div>
+    <AuthForm
+      title={"Sign in"}
+      image="/images/login-lg.jpeg"
+      onSubmit={async ({ username, password }, e) => {
+        e.preventDefault();
+        if (isLoading) {
+          return;
+        }
+        login({ username, password });
+      }}
+    />
   );
 };
 

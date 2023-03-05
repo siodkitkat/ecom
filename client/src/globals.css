@@ -7,9 +7,36 @@
   #root {
     @apply bg-neutral-1000;
   }
+
+  #root {
+    --bg-color: theme("colors.neutral.1000");
+  }
 }
 
 @layer components {
+  .mobile-scrollbar {
+    scrollbar-width: thin;
+  }
+
+  .mobile-scrollbar::-webkit-scrollbar {
+    width: 3px;
+    height: 5px;
+  }
+
+  .mobile-scrollbar::-webkit-scrollbar:hover {
+    width: 10px;
+  }
+
+  .mobile-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .mobile-scrollbar::-webkit-scrollbar-thumb {
+    background-color: hsla(0, 0%, 91%, 0.5);
+    border-radius: 20px;
+    border: transparent;
+    width: 10px;
+  }
+
   .underline-pink-anim {
     position: relative;
     padding: 0.25rem;
@@ -43,6 +70,33 @@
   .underline-pink-anim:focus::after {
     transform: scaleX(1);
     transform-origin: bottom left;
+  }
+
+  @keyframes fade-in {
+    0% {
+      filter: blur(10px);
+      transform: translate(-15%, -15%);
+      opacity: 0;
+    }
+
+    100% {
+      filter: blur(0px);
+      transform: translateX(0%);
+      opacity: 1;
+    }
+  }
+
+  @keyframes focus-in {
+    0% {
+      filter: brightness(0.5) blur(10px) grayscale(1);
+    }
+
+    100% {
+      filter: brightness(0.5) blur(0px) grayscale(1);
+    }
+  }
+
+  .fade-in {
   }
 }
 

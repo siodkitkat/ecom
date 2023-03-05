@@ -1,56 +1,24 @@
-import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import { Link } from "react-router-dom";
 import Button from "../../components/Button";
 import TruncatedText from "../../components/TruncatedText";
-import { ProductSchema } from "../../types";
-import { TIME_IN_MS } from "../../utils";
+import useAuth from "../../hooks/useAuth";
+import useProducts from "../../hooks/useProducts";
 
 const Products = () => {
-  const { data: products } = useQuery(["products-get-all"], {
-    queryFn: async () => {
-      const req = await fetch("/api/products");
+  const { isLoggedIn } = useAuth();
 
-      if (!req.ok) {
-        throw new Error("Failed to get products.");
-      }
-
-      const products = (await req.json())?.products;
-
-      if (!products) {
-        throw new Error('Invalid response received. No "products" field exits on the response.');
-      }
-
-      if (!Array.isArray(products)) {
-        throw new Error('Invalid response received. The "products" field is not an array.');
-      }
-
-      const validProducts = [];
-
-      for (let product of products) {
-        try {
-          validProducts.push(ProductSchema.parse(product));
-        } catch (e) {
-          continue;
-        }
-      }
-
-      return validProducts;
-    },
-    initialData: [],
-    initialDataUpdatedAt: 0,
-    staleTime: TIME_IN_MS.FIVE_MINUTES,
-  });
+  const { data: products } = useProducts();
 
   return (
-    <div className="flex flex-col gap-4 p-4 md:p-8">
-      <div className="flex items-center gap-2">
-        <b className="text-3xl">Products</b>
+    <div className="flex flex-col items-center gap-2 p-4 md:gap-4 md:p-8">
+      <div className="ml-1 flex items-center gap-2 md:ml-2 xl:ml-3">
+        <h2 className="text-3xl font-semibold md:text-5xl">Products</h2>
         <Link className="flex items-center gap-1 text-xl" to={`/products/create`}>
-          <Button variants={{ type: "secondary" }}>Create</Button>
+          {isLoggedIn ? <Button variants={{ type: "secondary" }}>Create</Button> : null}
         </Link>
       </div>
-      <div className="flex flex-col gap-4 md:gap-8 xl:flex-row xl:flex-wrap">
+      <div className="flex w-full flex-col items-center gap-4 md:gap-8 xl:flex-row xl:flex-wrap">
         {products.map((product) => {
           return (
             <Link
@@ -63,7 +31,7 @@ const Products = () => {
                 src={product.image[0]?.publicUrl ?? ""}
                 style={{ aspectRatio: "1 / 1" }}
               />
-              <div className="flex flex-col">
+              <div className="flex min-w-0 flex-col">
                 <TruncatedText className="text-xl font-bold md:text-3xl" title={product.title} maxLines={2}>
                   {product.title}
                 </TruncatedText>
