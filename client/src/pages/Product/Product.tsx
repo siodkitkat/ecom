@@ -2,20 +2,98 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { flushSync } from "react-dom";
 import { useParams } from "react-router-dom";
+import { z } from "zod";
 import Button from "../../components/Button";
 import Dialog from "../../components/Dialog";
+import { ControlledDialogProps } from "../../components/Dialog/ControlledDialog";
 import EditIcon from "../../components/icons/EditIcon";
 import Textarea from "../../components/Textarea";
 import useAuth from "../../hooks/useAuth";
 import { ProductSchema } from "../../types";
 import { TIME_IN_MS } from "../../utils";
 
+type EditableProductFields = Exclude<keyof z.infer<typeof ProductSchema>, "_id" | "image" | "User">;
+
+const ProductEditDialog = ({
+  value,
+  fieldToEdit,
+  open,
+  setOpen,
+  productId,
+  onSuccess,
+  onSettled,
+  onDiscard,
+}: {
+  value: string;
+  fieldToEdit: EditableProductFields;
+  open: ControlledDialogProps["open"];
+  setOpen: ControlledDialogProps["setOpen"];
+  productId: string;
+  onSuccess: () => void;
+  onSettled: () => void;
+  onDiscard: () => void;
+}) => {
+  const { mutate, isLoading } = useMutation({
+    mutationFn: async (value: string) => {
+      if (isLoading) {
+        throw new Error("Waiting for previous mutation to finish.");
+      }
+      await fetch(`/api/products/${productId}`, {
+        method: "PATCH",
+        body: new URLSearchParams({
+          [fieldToEdit]: value,
+        }),
+      });
+      return true;
+    },
+    onSettled: () => {
+      onSettled();
+    },
+    onSuccess: () => {
+      //To do throw a toast here
+      console.log("Successfully edited");
+      onSuccess();
+    },
+  });
+
+  const handleEdit = async () => {
+    mutate(value);
+  };
+
+  return (
+    <Dialog
+      open={open}
+      setOpen={setOpen}
+      title={`Edit this product's ${fieldToEdit}`}
+      description="Are you sure you want to do this ?"
+    >
+      <Button onClick={() => setOpen(false)} disabled={isLoading}>
+        Keep editing
+      </Button>
+      <Button
+        onClick={() => {
+          onDiscard();
+        }}
+        disabled={isLoading}
+      >
+        Discard Changes
+      </Button>
+      <Button onClick={handleEdit} disabled={isLoading}>
+        Save changes
+      </Button>
+    </Dialog>
+  );
+};
+
 const EditableText = ({
   children,
   canEdit,
   as = <p />,
   inputElement = "textarea",
+  fieldToEdit,
+  productId,
   onChangeComplete,
+  onSuccess,
   className = "",
   ...rest
 }: Omit<React.ComponentProps<"p">, "children"> & {
@@ -23,10 +101,15 @@ const EditableText = ({
   canEdit: boolean;
   as?: React.ReactElement;
   inputElement?: "textarea" | "input";
-  onChangeComplete?: (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
+  fieldToEdit: EditableProductFields;
+  productId: string;
+  onChangeComplete?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onSuccess: () => void;
 }) => {
   const [text, setText] = useState("");
   const [editing, setEditing] = useState(false);
+
+  const [diagOpen, setDiagOpen] = useState(false);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     if (e.key === "Escape") {
@@ -37,9 +120,13 @@ const EditableText = ({
 
   const handleStopEditing = () => {
     setEditing(false);
+    setDiagOpen(false);
+  };
+
+  const handleBlur = () => {
     if (children.trim() !== text.trim()) {
       //To do create a dialog and replace alert with it
-      alert("Are you sure about dat ?");
+      setDiagOpen(true);
     }
   };
 
@@ -54,7 +141,7 @@ const EditableText = ({
       }
     },
     onKeyDown: handleKeyDown,
-    onBlur: handleStopEditing,
+    onBlur: handleBlur,
   };
 
   return (
@@ -85,6 +172,16 @@ const EditableText = ({
           ) : null}
         </>
       )}
+      <ProductEditDialog
+        onSuccess={onSuccess}
+        onSettled={handleStopEditing}
+        onDiscard={handleStopEditing}
+        open={diagOpen}
+        setOpen={setDiagOpen}
+        fieldToEdit={fieldToEdit}
+        value={text}
+        productId={productId}
+      />
     </div>
   );
 };
@@ -133,7 +230,7 @@ const Product = () => {
   const { id } = useParams();
   const { user } = useAuth();
 
-  const { data: product } = useQuery(["product-get", id], {
+  const { data: product, refetch: refetchProduct } = useQuery(["product-get", id], {
     queryFn: async () => {
       const req = await fetch(`/api/products/${id}`);
 
@@ -149,6 +246,10 @@ const Product = () => {
 
   const canEdit = product.User === user?._id;
 
+  const handleEditComplete = () => {
+    refetchProduct();
+  };
+
   /* To do fetch  */
 
   return (
@@ -161,16 +262,35 @@ const Product = () => {
         />
         <div className="flex w-full flex-col items-baseline gap-2 p-1 md:gap-4 xl:py-8 xl:px-4">
           <div className="flex w-full flex-col gap-2 text-2xl text-zinc-200 md:gap-4 md:text-4xl">
-            <EditableText className="font-bold md:text-5xl" canEdit={canEdit}>
+            <EditableText
+              className="font-bold md:text-5xl"
+              productId={product._id}
+              canEdit={canEdit}
+              fieldToEdit={"title"}
+              onSuccess={handleEditComplete}
+            >
               {product.title}
             </EditableText>
-            <EditableText className="font-medium tracking-wider text-zinc-300" canEdit={canEdit} inputElement="input">
-              {`$${product.price}`}
-            </EditableText>
+            <div className="flex items-center">
+              <p>$</p>
+              <EditableText
+                className="font-medium tracking-wider text-zinc-300"
+                productId={product._id}
+                canEdit={canEdit}
+                fieldToEdit={"price"}
+                onSuccess={handleEditComplete}
+                inputElement="input"
+              >
+                {`${product.price}`}
+              </EditableText>
+            </div>
           </div>
           <EditableText
             className="w-full text-lg text-zinc-400 md:text-2xl 2xl:max-w-[55%]"
+            productId={product._id}
             canEdit={canEdit}
+            fieldToEdit={"body"}
+            onSuccess={handleEditComplete}
             as={<p className="" />}
           >
             {`${product.body}`}
