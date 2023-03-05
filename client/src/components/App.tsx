@@ -44,8 +44,6 @@ const router = createBrowserRouter([
 const App = () => {
   const [queryClient] = useState(new QueryClient());
 
-  //To do make a component that throws a loader while auth is loading and if loaded returns router provider
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
