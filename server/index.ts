@@ -13,6 +13,7 @@ import { errorResponse } from "./utils";
 import { envSchema } from "./types";
 import { requireLoggedOut, requireLogin } from "./middlewares";
 import ImagesRouter from "./routers/ImagesRouter";
+import Product from "./models/Product";
 
 const env = envSchema.parse(process.env);
 
@@ -106,6 +107,85 @@ app.post("/login", requireLoggedOut, passport.authenticate("local"), (req, res) 
   return res.status(200).json({
     message: "Successfully logged in.",
   });
+});
+
+app.post("/product", requireLogin, async (req, res) => {
+  if (!req.user?._id) {
+    return res.status(404).json(errorResponse("not logged in", 401));
+  }
+  const { title, price, quantity, body } = req.body;
+  const product = new Product({ body, title, price, quantity, User: req.user._id });
+  await product.save();
+
+  return res.status(200).json({ message: "Successfull", product: product });
+});
+
+app.get("/products", async (req, res) => {
+  const products = await Product.find({});
+  return res.status(200).json({ message: "Successfull", products: products });
+});
+app.get("/product/:id", async (req, res) => {
+  const id = req.params.id;
+
+  if (!id) {
+    return res.status(404).json(errorResponse("Product doesnt exist", 404));
+  }
+  const pro = await Product.findById(id);
+  return res.status(200).json(pro);
+});
+
+app.patch("/product/:id", requireLogin, async (req, res) => {
+  if (!req.user?._id) {
+    return res.status(404).json(errorResponse("not logged in", 401));
+  }
+  const { title, price, quantity, body } = req.body;
+
+  const product = await Product.findById(req.params.id);
+
+  if (!product) {
+    return res.status(400).json("Product doesn't exist");
+  }
+
+  if (title) {
+    product.title = title;
+  }
+
+  if (price) {
+    product.price = price;
+  }
+
+  if (quantity) {
+    product.quantity = quantity;
+  }
+
+  if (body) {
+    product.body = body;
+  }
+
+  await product.save();
+
+  res.status(200).json({ message: "Successfull", product: product });
+});
+
+app.delete("/product/:id", requireLogin, async (req, res) => {
+  if (!req.user?._id) {
+    return res.status(404).json(errorResponse("not logged in", 401));
+  }
+  const id = req.params.id;
+  if (!id) {
+    return res.status(404).json(errorResponse("Product doesnt exist", 404));
+  }
+  const prod = await Product.findById(id).populate("User");
+  if (!prod) {
+    return res.status(404).json(errorResponse("product doesnt exist", 404));
+  }
+
+  if (!prod.User._id.equals(req.user._id)) {
+    return res.status(404).json(errorResponse("not authorised", 401));
+  }
+
+  await prod.delete();
+  res.status(200).json({ message: "Successfull", product: prod });
 });
 
 app.use("/images", ImagesRouter);
