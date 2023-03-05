@@ -71,7 +71,7 @@ app.get("/me", requireLogin, (req, res) => {
 });
 
 app.post("/register", requireLoggedOut, (req, res) => {
-  const newUser = new User({ username: req.body.username });
+  const newUser = new User({ username: req.body.username, password: req.body.password });
 
   User.register(newUser, req.body.password, (err) => {
     if (err) {
