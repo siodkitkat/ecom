@@ -44,7 +44,11 @@ app.use(
 
 app.use(passport.initialize());
 
-passport.serializeUser(User.serializeUser());
+//To do fix this any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+passport.serializeUser((user: any, cb) => {
+  cb(null, { _id: user._id, username: user.username });
+});
 passport.deserializeUser(User.deserializeUser());
 
 passport.use(new LocalStrategy(User.authenticate()));
@@ -60,6 +64,10 @@ app.use((req, res, next) => {
 
 app.get("/", (req, res) => {
   return res.status(200).json("Nothing to see here");
+});
+
+app.get("/me", requireLogin, (req, res) => {
+  return res.status(200).json(req.user);
 });
 
 app.post("/register", requireLoggedOut, (req, res) => {
