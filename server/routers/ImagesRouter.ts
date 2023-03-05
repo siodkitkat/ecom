@@ -1,42 +1,22 @@
 import { Router } from "express";
-import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { envSchema } from "../types";
 import { requireLogin } from "../middlewares";
 import multer from "multer";
-import { errorResponse } from "../utils";
+import { errorResponse, S3 } from "../utils";
 import multers3 from "multer-s3";
 import Image, { IImage } from "../models/Image";
-import { Document, Types } from "mongoose";
 import { IUser } from "../models/User";
 
 const env = envSchema.parse(process.env);
-
-const S3 = new S3Client({
-  region: "auto",
-  endpoint: `https://${env.CLOUDFLARE_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: env.R2_ACCESS_ID,
-    secretAccessKey: env.R2_SECRET_KEY,
-  },
-});
-
 //To do add global error handler so the server doesnt crash in case of an error
 
-const deleteImageFromDb = async ({
-  image,
-  s3,
-}: {
-  image: Document<unknown, unknown, IImage> &
-    IImage & {
-      _id: Types.ObjectId;
-    };
-  s3: S3Client;
-}) => {
+export const deleteImageFromDb = async ({ image }: { image: IImage }) => {
   let deleted = false;
   let err;
 
   try {
-    const { $metadata: reqStatus } = await s3.send(
+    const { $metadata: reqStatus } = await S3.send(
       new DeleteObjectCommand({
         Bucket: env.R2_BUCKET_NAME,
         Key: image.key,
@@ -178,7 +158,6 @@ ImagesRouter.delete("/", requireLogin, async (req, res) => {
 
   const { deleted, deletedImage } = await deleteImageFromDb({
     image: img,
-    s3: S3,
   });
 
   if (!deleted) {
