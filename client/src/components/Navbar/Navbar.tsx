@@ -15,8 +15,6 @@ const AuthLinks = () => {
 };
 
 const Navbar = () => {
-  //To do add a drawer for mobile
-
   return (
     <nav className="flex h-max w-full py-[2em] text-xl md:text-[2rem] md:leading-10">
       <div className="mx-[1em] flex h-max flex-grow items-center font-[600]">
