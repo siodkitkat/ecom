@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { flushSync } from "react-dom";
 import { useParams } from "react-router-dom";
@@ -10,7 +10,7 @@ import EditIcon from "../../components/icons/EditIcon";
 import Textarea from "../../components/Textarea";
 import useAuth from "../../hooks/useAuth";
 import { ProductSchema } from "../../types";
-import { TIME_IN_MS } from "../../utils";
+import { invalidateProducts, TIME_IN_MS } from "../../utils";
 
 type EditableProductFields = Exclude<keyof z.infer<typeof ProductSchema>, "_id" | "image" | "User">;
 
@@ -33,6 +33,8 @@ const ProductEditDialog = ({
   onSettled: () => void;
   onDiscard: () => void;
 }) => {
+  const queryClient = useQueryClient();
+
   const { mutate, isLoading } = useMutation({
     mutationFn: async (value: string) => {
       if (isLoading) {
@@ -58,6 +60,7 @@ const ProductEditDialog = ({
       //To do throw a toast here
       console.log("Successfully edited");
       onSuccess();
+      invalidateProducts(queryClient);
     },
   });
 
@@ -192,6 +195,8 @@ const EditableText = ({
 };
 
 const ProductDeleteDialog = ({ canEdit, productId }: { canEdit: boolean; productId: string }) => {
+  const queryClient = useQueryClient();
+
   const [open, setOpen] = useState(false);
 
   const { mutateAsync: deleteProduct, isLoading } = useMutation(["product-delete", productId], {
@@ -212,6 +217,7 @@ const ProductDeleteDialog = ({ canEdit, productId }: { canEdit: boolean; product
     onSuccess: async () => {
       //To do throw up a snackbar to notify
       console.log("Deleted");
+      invalidateProducts(queryClient);
     },
   });
 

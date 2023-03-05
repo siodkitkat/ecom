@@ -58,7 +58,9 @@ const Navbar = () => {
           <Link className="underline-teal-anim" to="/">
             Home
           </Link>
-          <button className="underline-teal-anim">Search</button>
+          <Link className="underline-teal-anim" to="/products">
+            Products
+          </Link>
           <Drawer
             className="lg:hidden"
             Opener={

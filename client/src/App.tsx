@@ -5,7 +5,8 @@ import Layout from "./Layout";
 import Home from "./pages/Home";
 import GuestRoute from "./components/GuestRoute";
 import Register from "./pages/Register";
-import Product from "./pages/Products";
+import Product from "./pages/Products/Product";
+import Products from "./pages/Products";
 import { AuthProvider } from "./contexts/Auth";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -34,6 +35,10 @@ const router = createBrowserRouter([
             <Register />
           </GuestRoute>
         ),
+      },
+      {
+        path: "/products",
+        element: <Products />,
       },
       {
         path: "/products/create",

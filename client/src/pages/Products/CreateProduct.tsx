@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { ForwardedRef, useState } from "react";
 import { FieldErrors, FieldValues, useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
@@ -6,6 +6,7 @@ import Button from "../../components/Button";
 import ImageUploader from "../../components/ImageUploader";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { invalidateProducts } from "../../utils";
 
 const CreateProductFormSchema = z.object({
   title: z.string().min(1, "Atleast 1 character required"),
@@ -53,6 +54,8 @@ const Input = React.forwardRef(
 Input.displayName = "Input";
 
 const CreateProduct = () => {
+  const queryClient = useQueryClient();
+
   const [imageId, setImageId] = useState("");
 
   const {
@@ -94,6 +97,7 @@ const CreateProduct = () => {
     },
     onSuccess: (data) => {
       console.log("Created the product", data);
+      invalidateProducts(queryClient);
     },
   });
 
