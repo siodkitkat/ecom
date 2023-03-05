@@ -15,7 +15,7 @@ const Test = () => {
         onSubmit={async (e) => {
           e.preventDefault();
           const body = new URLSearchParams({
-            key: key,
+            id: key,
           });
 
           const req = await fetch("/api/images", {
@@ -26,8 +26,9 @@ const Test = () => {
           console.log(await req.json());
         }}
       >
+        <input type="file" />
         <input
-          name="key"
+          name="id"
           value={key}
           onChange={(e) => {
             setKey(e.currentTarget.value);
@@ -35,6 +36,8 @@ const Test = () => {
         />
         <Button type="submit">Delete</Button>
       </form>
+      <br />
+      <br />
     </div>
   );
 };

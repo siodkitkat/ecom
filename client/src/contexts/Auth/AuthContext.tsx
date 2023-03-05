@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
         const req = await fetch("/api/me");
 
         if (req.ok) {
-          return UserSchema.parse((await req.json()).user);
+          return UserSchema.parse(await req.json());
         }
 
         return null;
