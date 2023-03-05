@@ -12,7 +12,7 @@ const Product = () => {
   return (
     <div className="w-full">
       <div className="flex flex-col items-baseline gap-4 p-4 md:gap-8 md:p-12 xl:flex-row">
-        <img className="w-[35rem] self-center rounded-sm" src={img} style={{ aspectRatio: "1 / 1" }} />
+        <img className="w-[35rem] self-center rounded-sm object-cover" src={img} style={{ aspectRatio: "1 / 1" }} />
         <div className="flex flex-col items-baseline gap-2 p-1 md:gap-4 xl:py-8 xl:px-4">
           <div className="flex w-full items-center gap-4 text-2xl text-zinc-200 md:text-4xl xl:gap-32">
             <b className="max-w-[80%] xl:max-w-[65%]">Very special very cute very poggers long cat doll</b>
