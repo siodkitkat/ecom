@@ -5,11 +5,11 @@ import Layout from "./Layout";
 import Home from "./pages/Home";
 import GuestRoute from "./components/GuestRoute";
 import Register from "./pages/Register";
-import Product from "./pages/Product";
+import Product from "./pages/Products";
 import { AuthProvider } from "./contexts/Auth";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
-import CreateProduct from "./pages/Product/CreateProduct";
+import CreateProduct from "./pages/Products/CreateProduct";
 
 const router = createBrowserRouter([
   {
