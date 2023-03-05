@@ -109,21 +109,30 @@ app.post("/login", requireLoggedOut, passport.authenticate("local"), (req, res) 
   });
 });
 
+app.get("/products", async (req, res) => {
+  const products = await Product.find({}).populate("image");
+  return res.status(200).json({ message: "Successfull", products: products });
+});
+
 app.post("/product", requireLogin, async (req, res) => {
   if (!req.user?._id) {
     return res.status(404).json(errorResponse("not logged in", 401));
   }
-  const { title, price, quantity, body } = req.body;
-  const product = new Product({ body, title, price, quantity, User: req.user._id });
+  const { title, price, quantity, body, imageId } = req.body;
+
+  const product = new Product({
+    body,
+    title,
+    price: parseInt(price),
+    quantity: parseInt(quantity),
+    User: req.user._id,
+    image: [imageId],
+  });
   await product.save();
 
   return res.status(200).json({ message: "Successfull", product: product });
 });
 
-app.get("/products", async (req, res) => {
-  const products = await Product.find({});
-  return res.status(200).json({ message: "Successfull", products: products });
-});
 app.get("/product/:id", async (req, res) => {
   const id = req.params.id;
 

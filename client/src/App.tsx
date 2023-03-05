@@ -9,7 +9,7 @@ import Product from "./pages/Product";
 import { AuthProvider } from "./contexts/Auth";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Test from "./pages/Test";
+import CreateProduct from "./pages/Product/CreateProduct";
 
 const router = createBrowserRouter([
   {
@@ -36,10 +36,10 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/test",
+        path: "/products/create",
         element: (
           <ProtectedRoute>
-            <Test />
+            <CreateProduct />
           </ProtectedRoute>
         ),
       },
