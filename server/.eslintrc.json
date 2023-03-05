@@ -11,5 +11,7 @@
     "sourceType": "module"
   },
   "plugins": ["@typescript-eslint", "only-warn"],
-  "rules": {}
+  "rules": {
+    "prefer-const": "off"
+  }
 }

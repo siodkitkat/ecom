@@ -12,6 +12,7 @@ import User from "./models/User";
 import { errorResponse } from "./utils";
 import { envSchema } from "./types";
 import { requireLoggedOut, requireLogin } from "./middlewares";
+import ImagesRouter from "./routers/ImagesRouter";
 
 const env = envSchema.parse(process.env);
 
@@ -54,10 +55,10 @@ passport.deserializeUser(User.deserializeUser());
 passport.use(new LocalStrategy(User.authenticate()));
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
-  req.user = req.session.passport;
+  req.user = req.session.passport?.user;
 
   next();
 });
@@ -106,6 +107,8 @@ app.post("/login", requireLoggedOut, passport.authenticate("local"), (req, res) 
     message: "Successfully logged in.",
   });
 });
+
+app.use("/images", ImagesRouter);
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);

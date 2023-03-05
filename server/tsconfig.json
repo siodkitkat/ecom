@@ -6,6 +6,7 @@
     "esModuleInterop": true,
     "strict": true,
     "noImplicitAny": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "typeRoots": ["./types/globals"]
   }
 }
