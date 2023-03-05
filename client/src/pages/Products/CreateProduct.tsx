@@ -113,14 +113,15 @@ const CreateProduct = () => {
   };
 
   return (
-    <div className="flex flex-col p-4 text-lg md:p-6 md:text-3xl xl:p-8">
-      <p>Create a new product</p>
-      <form className="flex flex-col gap-4 " onSubmit={handleSubmit(createProduct)}>
+    <div className="flex flex-col gap-4 px-4 py-2 text-lg md:gap-8 md:px-8 md:py-4 md:text-4xl xl:px-12 xl:py-6">
+      <h2>Create a new product</h2>
+      <form className="flex w-max flex-col gap-4" onSubmit={handleSubmit(createProduct)}>
         <Input {...register("title")} errors={errors} />
         <Input {...register("body")} errors={errors} />
         <Input {...register("price", { valueAsNumber: true })} errors={errors} />
         <Input {...register("quantity", { valueAsNumber: true })} errors={errors} />
         <ImageUploader
+          className="md:mt-2"
           errorMessage={submitCount > 0 && !imageId ? "Atleast 1 image is required" : undefined}
           onComplete={(image) => {
             if (!image._id) {
@@ -131,7 +132,7 @@ const CreateProduct = () => {
             console.log("done updating image");
           }}
         />
-        <Button type="submit" disabled={isLoading}>
+        <Button className="md:mt-2" type="submit" disabled={isLoading}>
           Submit
         </Button>
       </form>

@@ -4,9 +4,9 @@ import { flushSync } from "react-dom";
 import { useParams } from "react-router-dom";
 import { z } from "zod";
 import Button from "../../components/Button";
-import Dialog from "../../components/Dialog";
 import { ControlledDialogProps } from "../../components/Dialog/ControlledDialog";
 import EditIcon from "../../components/icons/EditIcon";
+import StyledDialog from "../../components/StyledDialog";
 import Textarea from "../../components/Textarea";
 import useAuth from "../../hooks/useAuth";
 import { ProductSchema } from "../../types";
@@ -69,27 +69,30 @@ const ProductEditDialog = ({
   };
 
   return (
-    <Dialog
+    <StyledDialog
       open={open}
       setOpen={setOpen}
       title={`Edit this product's ${fieldToEdit}`}
       description="Are you sure you want to do this ?"
     >
-      <Button onClick={() => setOpen(false)} disabled={isLoading}>
-        Keep editing
-      </Button>
-      <Button
-        onClick={() => {
-          onDiscard();
-        }}
-        disabled={isLoading}
-      >
-        Discard Changes
-      </Button>
-      <Button onClick={handleEdit} disabled={isLoading}>
-        Save changes
-      </Button>
-    </Dialog>
+      <div className="mt-1 flex flex-wrap items-center gap-2 md:mt-2 md:gap-4">
+        <Button variants={{ type: "secondary", size: "sm" }} onClick={() => setOpen(false)} disabled={isLoading}>
+          Keep editing
+        </Button>
+        <Button
+          variants={{ type: "secondary", size: "sm" }}
+          onClick={() => {
+            onDiscard();
+          }}
+          disabled={isLoading}
+        >
+          Discard Changes
+        </Button>
+        <Button variants={{ size: "sm" }} onClick={handleEdit} disabled={isLoading}>
+          Save changes
+        </Button>
+      </div>
+    </StyledDialog>
   );
 };
 
@@ -139,7 +142,8 @@ const EditableText = ({
   };
 
   const textElProps = {
-    className: "w-full resize-none rounded-sm bg-transparent p-2 focus:outline focus:outline-2 focus:outline-blue-400",
+    className:
+      "w-full resize-none rounded-sm bg-transparent p-2 focus:outline-pink-500 outline outline-2 outline-pink-200",
     autoFocus: true,
     value: text,
     onChange: (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
@@ -227,18 +231,22 @@ const ProductDeleteDialog = ({ canEdit, productId }: { canEdit: boolean; product
   };
 
   return canEdit ? (
-    <Dialog
+    <StyledDialog
       Opener={<Button>Delete</Button>}
       open={open}
       setOpen={setOpen}
       title={"Delete this product"}
       description="Are you sure you want to do this ?"
     >
-      <Button onClick={() => setOpen(false)}>No</Button>
-      <Button onClick={handleDelete} disabled={isLoading}>
-        Yes
-      </Button>
-    </Dialog>
+      <div className="mt-1 flex items-center gap-2 md:mt-2 md:gap-4">
+        <Button variants={{ type: "secondary" }} onClick={() => setOpen(false)}>
+          No go back
+        </Button>
+        <Button onClick={handleDelete} disabled={isLoading}>
+          Yes delete this
+        </Button>
+      </div>
+    </StyledDialog>
   ) : null;
 };
 
@@ -315,13 +323,14 @@ const Product = () => {
           >
             {`${product.body}`}
           </EditableText>
-
-          <Dialog
-            Opener={<Button className="mt-4 bg-teal-600 py-1 px-2 md:mt-2">Buy</Button>}
-            title="Whoops"
-            description="This site is meant to be a demo. You can't actually purchase anything from here sorry :/"
-          />
-          <ProductDeleteDialog canEdit={canEdit} productId={product._id} />
+          <div className="mt-4 flex items-center gap-4 md:mt-2">
+            <StyledDialog
+              Opener={<Button variants={{ type: "secondary" }}>Buy now</Button>}
+              title="Whoops"
+              description="This site is meant to be a demo. You can't actually purchase anything from here sorry :/"
+            />
+            <ProductDeleteDialog canEdit={canEdit} productId={product._id} />
+          </div>
         </div>
       </div>
     </div>

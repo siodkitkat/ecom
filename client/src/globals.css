@@ -10,18 +10,18 @@
 }
 
 @layer components {
-  .underline-teal-anim {
+  .underline-pink-anim {
     position: relative;
     padding: 0.25rem;
     border-radius: 2px;
   }
 
-  .underline-teal-anim:focus {
+  .underline-pink-anim:focus {
     position: relative;
-    outline: 2px solid theme("colors.teal.300");
+    outline: 2px solid theme("colors.pink.500");
   }
 
-  .underline-teal-anim::after {
+  .underline-pink-anim::after {
     position: absolute;
     content: "";
 
@@ -31,7 +31,7 @@
     left: 0px;
     bottom: -1px;
 
-    background-color: theme("colors.teal.300");
+    background-color: theme("colors.pink.500");
 
     transform: scaleX(0);
     transform-origin: bottom right;
@@ -39,8 +39,8 @@
     transition: transform 0.25s ease-out;
   }
 
-  .underline-teal-anim:hover::after,
-  .underline-teal-anim:focus::after {
+  .underline-pink-anim:hover::after,
+  .underline-pink-anim:focus::after {
     transform: scaleX(1);
     transform-origin: bottom left;
   }

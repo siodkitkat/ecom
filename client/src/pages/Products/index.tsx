@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import { Link } from "react-router-dom";
+import Button from "../../components/Button";
 import TruncatedText from "../../components/TruncatedText";
 import { ProductSchema } from "../../types";
 import { TIME_IN_MS } from "../../utils";
@@ -42,11 +43,11 @@ const Products = () => {
   });
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="flex flex-col gap-4 p-4 md:p-8">
       <div className="flex items-center gap-2">
         <b className="text-3xl">Products</b>
         <Link className="flex items-center gap-1 text-xl" to={`/products/create`}>
-          <p>Create</p>
+          <Button variants={{ type: "secondary" }}>Create</Button>
         </Link>
       </div>
       <div className="flex flex-col gap-4 md:gap-8 xl:flex-row xl:flex-wrap">

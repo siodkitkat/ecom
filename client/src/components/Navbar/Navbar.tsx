@@ -25,7 +25,7 @@ const AuthLinks = () => {
     <>
       {isLoggedIn ? (
         <button
-          className="underline-teal-anim inline text-start text-xl md:text-[2rem]"
+          className="underline-pink-anim inline text-start text-xl md:text-[2rem]"
           onClick={
             !isLoading
               ? () => {
@@ -38,10 +38,10 @@ const AuthLinks = () => {
         </button>
       ) : (
         <>
-          <Link className="underline-teal-anim text-xl md:text-[2rem]" to="/login">
+          <Link className="underline-pink-anim text-xl md:text-[2rem]" to="/login">
             Login
           </Link>
-          <Link className="underline-teal-anim text-xl md:text-[2rem]" to="/register">
+          <Link className="underline-pink-anim text-xl md:text-[2rem]" to="/register">
             Register
           </Link>
         </>
@@ -55,16 +55,16 @@ const Navbar = () => {
     <nav className="flex h-max w-full py-[2em] text-xl md:text-[2rem] md:leading-10">
       <div className="mx-[1em] flex h-max flex-grow items-center font-[600]">
         <div className="flex h-max flex-grow justify-evenly">
-          <Link className="underline-teal-anim" to="/">
+          <Link className="underline-pink-anim" to="/">
             Home
           </Link>
-          <Link className="underline-teal-anim" to="/products">
+          <Link className="underline-pink-anim" to="/products">
             Products
           </Link>
           <Drawer
             className="lg:hidden"
             Opener={
-              <button className="underline-teal-anim lg:hidden">
+              <button className="underline-pink-anim lg:hidden">
                 <GiHamburgerMenu />
               </button>
             }

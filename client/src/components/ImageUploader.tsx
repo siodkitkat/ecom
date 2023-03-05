@@ -6,9 +6,11 @@ import Button from "./Button";
 
 const ImageUploader = ({
   errorMessage,
+  className = "",
   onComplete,
 }: {
   errorMessage?: string;
+  className?: string;
   onComplete?: (image: z.infer<typeof ImageSchema>) => void;
 }) => {
   const { mutate } = useMutation({
@@ -55,10 +57,11 @@ const ImageUploader = ({
   };
 
   return (
-    <div>
-      <div className="flex items-center gap-16 md:gap-24">
+    <div className={className}>
+      <div className="flex items-center justify-between">
         <input className="hidden" type="file" name="image" ref={fileInputRef} />
         <Button
+          variants={{ type: "secondary", weight: "semibold" }}
           onClick={() => {
             if (!fileInputRef.current) {
               return;
@@ -69,7 +72,7 @@ const ImageUploader = ({
         >
           Choose a file
         </Button>
-        <Button type="submit" onClick={handleClick}>
+        <Button variants={{ type: "secondary", weight: "semibold" }} type="submit" onClick={handleClick}>
           Upload
         </Button>
       </div>
