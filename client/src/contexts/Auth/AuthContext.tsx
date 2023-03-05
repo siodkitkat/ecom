@@ -20,11 +20,11 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
       try {
         const req = await fetch("/api/me");
 
-        if (req.ok) {
-          return UserSchema.parse(await req.json());
+        if (!req.ok) {
+          throw new Error("Failed to get user status");
         }
 
-        return null;
+        return UserSchema.parse(await req.json());
       } catch (e) {
         return null;
       }

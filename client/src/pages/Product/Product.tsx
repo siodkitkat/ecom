@@ -38,12 +38,17 @@ const ProductEditDialog = ({
       if (isLoading) {
         throw new Error("Waiting for previous mutation to finish.");
       }
-      await fetch(`/api/products/${productId}`, {
+      const req = await fetch(`/api/products/${productId}`, {
         method: "PATCH",
         body: new URLSearchParams({
           [fieldToEdit]: value,
         }),
       });
+
+      if (!req.ok) {
+        throw new Error("Failed to edit.");
+      }
+
       return true;
     },
     onSettled: () => {
@@ -194,9 +199,14 @@ const ProductDeleteDialog = ({ canEdit, productId }: { canEdit: boolean; product
       if (isLoading) {
         throw new Error("Waiting for previous mutation to finish.");
       }
-      await fetch(`/api/products/${productId}`, {
+      const req = await fetch(`/api/products/${productId}`, {
         method: "DELETE",
       });
+
+      if (!req.ok) {
+        throw new Error("Failed to delete this product.");
+      }
+
       return true;
     },
     onSuccess: async () => {
@@ -233,6 +243,10 @@ const Product = () => {
   const { data: product, refetch: refetchProduct } = useQuery(["product-get", id], {
     queryFn: async () => {
       const req = await fetch(`/api/products/${id}`);
+
+      if (!req.ok) {
+        throw new Error("Failed to get the requested product.");
+      }
 
       return ProductSchema.parse((await req.json())?.product);
     },

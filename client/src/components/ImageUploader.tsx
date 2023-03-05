@@ -1,41 +1,48 @@
+import { useMutation } from "@tanstack/react-query";
 import React, { useRef } from "react";
-import { IImage } from "../../../server/models/Image";
+import { z } from "zod";
+import { ImageSchema } from "../types";
 import Button from "./Button";
 
-const ImageUploader = ({ onComplete }: { onComplete?: (image: IImage) => void }) => {
+const ImageUploader = ({ onComplete }: { onComplete?: (image: z.infer<typeof ImageSchema>) => void }) => {
+  const { mutate } = useMutation({
+    mutationFn: async () => {
+      const file = fileinputRef.current?.files?.[0];
+
+      if (!file) {
+        throw new Error("No file was added to upload.");
+      }
+
+      const formData = new FormData();
+
+      formData.append("image", file);
+
+      const req = await fetch("/api/images", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!req.ok) {
+        throw new Error("Failed to upload image.");
+      }
+
+      const image = ImageSchema.parse((await req.json())?.image);
+
+      return image;
+    },
+    onSuccess: onComplete
+      ? (image) => {
+          //To do throw a toast here
+          onComplete(image);
+        }
+      : undefined,
+  });
+
   const fileinputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-
-    const file = fileinputRef.current?.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    const formData = new FormData();
-
-    formData.append("image", file);
-
-    const req = await fetch("/api/images", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!req.ok) {
-      return;
-    }
-
-    const image = (await req.json())?.image as IImage | undefined;
-
-    if (!image) {
-      return;
-    }
-
-    if (onComplete) {
-      onComplete(image);
-    }
+    mutate();
   };
 
   return (
